@@ -5,7 +5,7 @@ import numpy as np
 
 # Precursor charges and m/z's considered.
 mz_interval = 1
-charges, mzs = (2, 3), np.arange(50, 2501, mz_interval)
+charges, mzs = (2, 3, 4, 5, 6), np.arange(50, 2501, mz_interval)
 
 # Spectrum preprocessing.
 min_peaks = 5
@@ -29,15 +29,16 @@ n_probe = 32
 batch_size = 2**16
 
 # DBSCAN clustering.
-eps = 0.1
+#eps = 0.1 # CHANGED
+eps = 0.35
 min_samples = 2
 
 # Input/output.
-overwrite = False
-export_representatives = True
+overwrite = True # CHANGED
+export_representatives = False
 pxd = 'USI000000'
-peak_dir = os.path.abspath('../data/interim')
-work_dir = os.path.abspath('../data/processed')
+peak_dir = os.path.abspath('datasets/CCLE_F01')
+work_dir = os.path.abspath('work_dir/test')
 filenames = [os.path.join(peak_dir, filename)
              for filename in os.listdir(peak_dir)
              if filename.endswith('.mgf')]
