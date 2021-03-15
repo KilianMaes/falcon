@@ -37,8 +37,9 @@ min_samples = 2
 overwrite = True # CHANGED
 export_representatives = False
 pxd = 'USI000000'
-peak_dir = os.path.abspath('datasets/CCLE_F01')
+io_buffer = 1000
+peak_dir = os.path.abspath('datasets/erwinia')
 work_dir = os.path.abspath('work_dir/test')
 filenames = [os.path.join(peak_dir, filename)
              for filename in os.listdir(peak_dir)
-             if filename.endswith('.mgf')]
+             if filename.endswith('.db')]
