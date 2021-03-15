@@ -4,9 +4,11 @@ import math
 import os
 import pickle
 import sys
+import time
 from typing import Dict, List
 
 import joblib
+import threading, queue
 import natsort
 import numpy as np
 import pandas as pd
@@ -40,6 +42,8 @@ def main():
             os.remove(os.path.join(config.work_dir, 'clusters.csv'))
         if os.path.isfile(os.path.join(config.work_dir, 'clusters.mgf')):
             os.remove(os.path.join(config.work_dir, 'clusters.mgf'))
+
+    start_time = time.time()
 
     # Read the spectra from the input files and partition them based on their
     # precursor m/z.
@@ -117,6 +121,9 @@ def main():
                 metadata.iloc[list(cluster.get_cluster_representatives(
                     clusters, pairwise_dist_matrix))])
 
+    elapsed_time = time.time() - start_time
+    logger.debug('Elapsed time: {0:.2f} min'.format(elapsed_time/60))
+
     # Export cluster memberships and representative spectra.
     n_clusters, n_spectra_clustered = 0, 0
     for clust in clusters_all:
@@ -172,17 +179,14 @@ def _prepare_spectra() -> Dict[int, int]:
     filehandles = {(charge, mz): open(os.path.join(config.work_dir, 'spectra',
                                                    f'{charge}_{mz}.pkl'), 'wb')
                    for charge in config.charges for mz in config.mzs}
-    for file_spectra in joblib.Parallel(n_jobs=-1)(
-            joblib.delayed(_read_spectra)(filename)
-            for filename in config.filenames):
-        for spec in file_spectra:
-            filehandle = filehandles.get(
-                (spec.precursor_charge,
-                 math.floor(spec.precursor_mz / config.mz_interval)
-                 * config.mz_interval))
-            if filehandle is not None:
-                pickle.dump(spec, filehandle, protocol=5)
-            # FIXME: Add nearby spectra to neighboring files.
+
+    # Producer/consumer implementation to read the spectra and write them concurrently
+    q = queue.Queue(maxsize=config.io_buffer)  # queue used to read
+    threading.Thread(target=_store_spectra, daemon=True, args=(filehandles, q)).start()
+    for filename in config.filenames:
+        _read_spectra(filename, q)
+    q.join()
+
     for filehandle in filehandles.values():
         filehandle.close()
     # Make sure the spectra in the individual files are sorted by their
@@ -199,7 +203,7 @@ def _prepare_spectra() -> Dict[int, int]:
     return charge_count
 
 
-def _read_spectra(filename: str) -> List[MsmsSpectrum]:
+def _read_spectra(filename: str, q: queue):
     """
     Get high-quality processed MS/MS spectra from the given file.
 
@@ -213,14 +217,23 @@ def _read_spectra(filename: str) -> List[MsmsSpectrum]:
     List[MsmsSpectrum]
         The spectra in the given file.
     """
-    spectra = []
     for spec in ms_io.get_spectra(filename):
         if spec.precursor_charge in config.charges:
             spec.identifier = f'mzspec:{config.pxd}:{spec.identifier}'
-            spectra.append(spec)
-    spectra.sort(key=lambda spec: spec.precursor_mz)
-    return spectra
+            q.put(spec)
 
+
+def _store_spectra(filehandles, q):
+    while True:
+        spec = q.get()
+        filehandle = filehandles.get(
+            (spec.precursor_charge,
+             math.floor(spec.precursor_mz / config.mz_interval)
+             * config.mz_interval))
+        if filehandle is not None:
+            pickle.dump(spec, filehandle, protocol=5)
+        # FIXME: Add nearby spectra to neighboring files.
+        q.task_done()
 
 def _read_write_spectra_pkl(filename: str) -> int:
     """
