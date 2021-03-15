@@ -5,7 +5,7 @@ from typing import Iterable, Iterator, List
 from spectrum_utils.spectrum import MsmsSpectrum
 
 from cluster import spectrum
-from ms_io import mgf_io, mzml_io, mzxml_io
+from ms_io import mgf_io, mzml_io, mzxml_io, sql_io
 
 
 def get_spectra(filename: str) -> Iterator[MsmsSpectrum]:
@@ -34,6 +34,8 @@ def get_spectra(filename: str) -> Iterator[MsmsSpectrum]:
         spectrum_io = mzml_io
     elif ext == '.mzxml':
         spectrum_io = mzxml_io
+    elif ext == '.db':
+        spectrum_io = sql_io
     else:
         raise ValueError(f'Unknown spectrum file type with extension "{ext}"')
 
@@ -41,6 +43,34 @@ def get_spectra(filename: str) -> Iterator[MsmsSpectrum]:
         spec.is_processed = False
         yield spec
 
+
+def get_one_spectrum(filename: str, id: int) -> MsmsSpectrum:
+    """
+    Extract one spectrum from the indicated file.
+
+    Parameters
+    ----------
+    filename : str
+        The filename from which the spectrum has to be extracted.
+    id : int
+        The identifier of the spectrum.
+
+    Returns
+    -------
+    MsmsSpectrum
+        The requested spectrum.
+    """
+    _, ext = os.path.splitext(filename.lower())
+    if ext == '.mgf':
+        spectrum_io = mgf_io
+    elif ext == '.db':
+        spectrum_io = sql_io
+    else:
+        raise ValueError(f'Unknown spectrum file type with extension "{ext}"')
+
+    spec = spectrum_io.get_one_spectrum(filename, id)
+    spec.is_processed = False
+    return spec
 
 def write_spectra(filename: str, spectra: Iterable[MsmsSpectrum]) -> None:
     """
