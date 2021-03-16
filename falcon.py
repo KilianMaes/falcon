@@ -233,7 +233,8 @@ def _read_spectra(filename: str, q: queue):
         if spec.precursor_charge in config.charges:
             spec.identifier = f'mzspec:{config.pxd}:{spec.identifier}'
             q.put(spec)
-            cnt = cnt + 1
+
+        cnt = cnt + 1
 
 
 def _store_spectra(filehandles, q, _sentinel):
