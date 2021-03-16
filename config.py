@@ -5,7 +5,7 @@ import numpy as np
 
 # Precursor charges and m/z's considered.
 mz_interval = 1
-charges, mzs = (2, 3, 4, 5, 6), np.arange(50, 2501, mz_interval)
+charges, mzs = (2, 3, 4, 5), np.arange(50, 2501, mz_interval)
 
 # Spectrum preprocessing.
 min_peaks = 5
@@ -38,7 +38,8 @@ overwrite = True # CHANGED
 export_representatives = False
 pxd = 'USI000000'
 io_buffer = 1000
-peak_dir = os.path.abspath('datasets/erwinia')
+io_limit = 39267
+peak_dir = os.path.abspath('datasets')
 work_dir = os.path.abspath('work_dir/test')
 filenames = [os.path.join(peak_dir, filename)
              for filename in os.listdir(peak_dir)

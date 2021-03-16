@@ -217,10 +217,17 @@ def _read_spectra(filename: str, q: queue):
     List[MsmsSpectrum]
         The spectra in the given file.
     """
+    cnt = 0
+
     for spec in ms_io.get_spectra(filename):
+        if cnt >= config.io_limit:
+            break
+
         if spec.precursor_charge in config.charges:
             spec.identifier = f'mzspec:{config.pxd}:{spec.identifier}'
             q.put(spec)
+
+        cnt = cnt + 1
 
 
 def _store_spectra(filehandles, q):
