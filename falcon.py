@@ -5,6 +5,7 @@ import os
 import pickle
 import sys
 import time
+import tqdm
 from typing import Dict, List
 
 import joblib
@@ -181,14 +182,20 @@ def _prepare_spectra() -> Dict[int, int]:
                    for charge in config.charges for mz in config.mzs}
 
     # Producer/consumer implementation to read the spectra and write them concurrently
-    q = queue.Queue(maxsize=config.io_buffer)  # queue used to read
-    threading.Thread(target=_store_spectra, daemon=True, args=(filehandles, q)).start()
+    # The sentinel is added in the queue when all the files were read
+    q = queue.Queue(maxsize=config.io_buffer_read)  # queue used to read
+    _sentinel = object()
+    consumer = threading.Thread(target=_store_spectra, daemon=True, args=(filehandles, q, _sentinel))
+    consumer.start()
+
     for filename in config.filenames:
         _read_spectra(filename, q)
-    q.join()
+    q.put(_sentinel)
+    consumer.join()
 
     for filehandle in filehandles.values():
         filehandle.close()
+
     # Make sure the spectra in the individual files are sorted by their
     # precursor m/z and count the number of spectra per precursor charge.
     logger.debug('Order spectrum splits by precursor m/z')
@@ -226,13 +233,29 @@ def _read_spectra(filename: str, q: queue):
         if spec.precursor_charge in config.charges:
             spec.identifier = f'mzspec:{config.pxd}:{spec.identifier}'
             q.put(spec)
+            cnt = cnt + 1
 
-        cnt = cnt + 1
 
+def _store_spectra(filehandles, q, _sentinel):
+    """
+    Get the spectra from the queue and dump them to the files corresponding to their precursor mz
 
-def _store_spectra(filehandles, q):
+    Parameters
+    ----------
+    filehandles
+    q
+    _sentinel
+
+    Returns
+    -------
+
+    """
+    pbar = tqdm.tqdm(total=config.io_limit)
     while True:
         spec = q.get()
+        if spec is _sentinel:
+            break
+
         filehandle = filehandles.get(
             (spec.precursor_charge,
              math.floor(spec.precursor_mz / config.mz_interval)
@@ -240,7 +263,10 @@ def _store_spectra(filehandles, q):
         if filehandle is not None:
             pickle.dump(spec, filehandle, protocol=5)
         # FIXME: Add nearby spectra to neighboring files.
+        pbar.update(1)
         q.task_done()
+
+    pbar.close()
 
 def _read_write_spectra_pkl(filename: str) -> int:
     """
