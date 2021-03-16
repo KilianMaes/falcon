@@ -24,7 +24,7 @@ def get_spectra(source: str) -> Iterable[sus.MsmsSpectrum]:
     c = conn.cursor()
 
     res = c.execute(
-        f"SELECT _pkey, precursorMz, precursorCharge, mz, intensity, rtime FROM msdata ORDER BY _pkey"
+        f"SELECT _pkey, precursorMz, precursorCharge, mz, intensity, rtime FROM msdata WHERE msLevel = 2 ORDER BY _pkey"
     )
 
     # Use res as an iterator
