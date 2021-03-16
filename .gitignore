@@ -1,6 +1,7 @@
-.idea
+.idea/
 datasets
 work_dir
+work_dir_SSD/
 __pycache__/
 cluster/__pycache__/
 ms_io/__pycache__/
