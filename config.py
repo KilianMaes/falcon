@@ -34,13 +34,13 @@ eps = 0.35
 min_samples = 2
 
 # Input/output.
-overwrite = True # CHANGED
+overwrite = False
 export_representatives = False
 pxd = 'USI000000'
 io_buffer_read = 10000
-io_limit = 0.1*(10**6)
+io_limit = 463460
 peak_dir = os.path.abspath('datasets')
-work_dir = os.path.abspath('work_dir/test')
+work_dir = os.path.abspath('work_dir_SSD/Prot_01')
 filenames = [os.path.join(peak_dir, filename)
              for filename in os.listdir(peak_dir)
              if filename.endswith('.db')]
