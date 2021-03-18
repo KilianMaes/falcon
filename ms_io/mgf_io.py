@@ -38,6 +38,17 @@ def get_spectra(source: Union[IO, str]) -> Iterable[sus.MsmsSpectrum]:
                 pass
 
 
+def get_one_spectrum(filename, id):
+    # Not very efficient but this function should disappear
+    for sp in get_spectra(filename):
+        _, _, curr_id = sp.identifier.split(':')
+        curr_id = int(curr_id)
+        if curr_id == id:
+            return sp
+
+    Exception("Spectrum not found in .mgf file")
+
+
 def _parse_spectrum(spectrum_dict: Dict) -> sus.MsmsSpectrum:
     """
     Parse the Pyteomics cluster dict.
