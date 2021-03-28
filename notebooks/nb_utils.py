@@ -4,12 +4,18 @@ import pickle
 import joblib
 import math
 import functools
+from scipy import spatial
+import numpy as np
 import scipy.sparse as ss
 from tqdm.notebook import tqdm
 
 sys.path.append('..')
 import config
 from cluster import cluster, spectrum
+
+msclustering_tolerance = 0.05
+hdvectors_min_mz, hdvectors_max_mz = 101, 1500
+hdvectors_fragment_mz_tolerance = 0.05
 
 
 # The function to process the spectra (same as for falcon)
@@ -112,7 +118,7 @@ def update_window(queue_sp, currw_sp, curr_mz, mass_tol, iter, curr_id, pbar = N
     return queue_sp, currw_sp, curr_id
 
 
-def exact_sparse_matrix(sp_path, charge, precursor_tol_mass):
+def exact_sparse_matrix(sp_path, charge, precursor_tol_mass, dist_func):
     charge_count = joblib.load(os.path.join(sp_path, 'info.joblib'))
     pbar = tqdm(total=charge_count[charge])
 
@@ -143,7 +149,8 @@ def exact_sparse_matrix(sp_path, charge, precursor_tol_mass):
             n_neighbors = n_neighbors + 1
             if math.floor(curr_sp.precursor_mz) != math.floor(pot_neighbor.precursor_mz):
                 n_sp_diff_bucket = n_sp_diff_bucket + 1
-            data.append(1)
+            d = dist_func( (curr_sp, pot_neighbor) )
+            data.append(d)
             indices.append(j)
             indptr[-1] = indptr[-1] + 1
 
@@ -160,6 +167,16 @@ def ind_in_sparse(mat, ind):
     if j not in indices:
         return False
     return True
+
+def ss_generator(mat):
+    i = 0
+    for i in range(0, mat.shape[0]):
+        ind_ptr = mat.indptr[i:i + 2]
+        indices = mat.indices[ind_ptr[0]:ind_ptr[1]]
+        for j in indices:
+            yield (i, j)
+
+    return
 
 # Check how many entries are in mat1 but not in mat2
 def indices_lost(matrices):
@@ -178,6 +195,86 @@ def indices_lost(matrices):
 
     return ind_lost
 
+# Count the number of entries larger than thr in each row (= number of potential neighbors)
+def extract_n_neighbors(mat, thresholds):
+    n_spectra = mat.shape[0]
+    n_neighbors = np.zeros( (n_spectra, len(thresholds)) )
+
+    for i in range(0, n_spectra):
+        indptr = mat.indptr[i:i+2]
+        indices = mat.indices[indptr[0]:indptr[1]]
+        indices = indices[np.where(indices != i)]
+
+        for l in range(0, len(thresholds)):
+            if len(indices) != 0:
+                mask = np.where(mat.data[indices] < thresholds[l])
+                n_neighbors[i,l] = len(mask[0])
+
+    return n_neighbors
+
 # Mat is a sparse matrix
-def extract_values(mat):
-    return mat.data
+def extract_nondiag_values(mat):
+    n_spectra = mat.shape[0]
+    data = []
+    for i in range(0, n_spectra):
+        indptr = mat.indptr[i:i+2]
+        indices = mat.indices[indptr[0]:indptr[1]]
+        indices = indices[np.where(indices != i)]
+        data = data + mat.data[indices].tolist()
+    return data
+
+
+"""
+    Distance functions
+"""
+
+def hdvectors_distance(sps):
+    min_mz = hdvectors_min_mz
+    max_mz = hdvectors_max_mz
+    fragment_mz_tolerance = hdvectors_fragment_mz_tolerance
+    vecs = []
+    for sp in sps:
+        l = int((max_mz - min_mz) / fragment_mz_tolerance)
+        vec = np.zeros(l)
+        for mz, intensity in zip(sp.mz, sp.intensity):
+            ind = int(np.floor((mz - min_mz) / fragment_mz_tolerance))
+            vec[ind] = vec[ind] + intensity
+        vecs.append(vec)
+    return spatial.distance.cosine( vecs[0], vecs[1] )
+
+def msclustering_distance(sps):
+    n_peaks = round((sps[0].precursor_charge * sps[0].precursor_mz)/1000 * 15)
+    mz_int1_int2 = []
+    for i, sp in zip( [0,1], sps):
+        mz = sp.mz.tolist()
+        intensity = sp.intensity.tolist()
+        mz_intensity = [(i, m) for m, i in zip(mz, intensity)]
+        mz_intensity.sort(reverse=True)
+        mz_intensity = mz_intensity[:n_peaks]
+
+        for int, mz in mz_intensity:
+            if i == 0:
+                mz_int1_int2.append( (mz, int, 0) )
+            else:
+                mz_int1_int2.append( (mz, 0, int) )
+
+    mz_int1_int2.sort()
+    mz_int1_int2_merged = []
+    i = 0
+    while i < ( len(mz_int1_int2) - 1):
+        (mz1, int11, int12) = mz_int1_int2[i]
+        (mz2, int21, int22) = mz_int1_int2[i+1]
+        if(abs(mz1 - mz2) < msclustering_tolerance):
+            mz_int1_int2_merged.append( (mz1+mz2/2, int11+int21, int12+int22) )
+            i = i + 2
+        else:
+            mz_int1_int2_merged.append(mz_int1_int2[i])
+            i = i+1
+
+            if i == len(mz_int1_int2) - 2:
+                mz_int1_int2_merged.append(mz_int1_int2[i+1])
+
+    v1 = [int for _, int, _ in mz_int1_int2_merged]
+    v2 = [int for _, _, int in mz_int1_int2_merged]
+
+    return spatial.distance.cosine(v1, v2)
