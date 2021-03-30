@@ -200,7 +200,7 @@ def extract_n_neighbors(mat, thresholds):
     n_spectra = mat.shape[0]
     n_neighbors = np.zeros( (n_spectra, len(thresholds)) )
 
-    for i in range(0, n_spectra):
+    for i in tqdm(range(0, n_spectra)):
         indptr = mat.indptr[i:i+2]
         indices = mat.indices[indptr[0]:indptr[1]]
         indices = indices[np.where(indices != i)]
@@ -216,7 +216,7 @@ def extract_n_neighbors(mat, thresholds):
 def extract_nondiag_values(mat):
     n_spectra = mat.shape[0]
     data = []
-    for i in range(0, n_spectra):
+    for i in tqdm(range(0, n_spectra)):
         indptr = mat.indptr[i:i+2]
         indices = mat.indices[indptr[0]:indptr[1]]
         indices = indices[np.where(indices != i)]
