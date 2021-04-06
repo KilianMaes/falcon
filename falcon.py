@@ -227,7 +227,7 @@ def _read_spectra(filename: str, q: queue):
     cnt = 0
 
     for spec in ms_io.get_spectra(filename):
-        if cnt >= config.io_limit:
+        if config.io_limit and cnt >= config.io_limit:
             break
 
         if spec.precursor_charge in config.charges:
@@ -251,7 +251,11 @@ def _store_spectra(filehandles, q, _sentinel):
     -------
 
     """
-    pbar = tqdm.tqdm(total=config.io_limit)
+    if config.io_limit:
+        pbar = tqdm.tqdm(total=config.io_limit)
+    else:
+        pbar = tqdm.tqdm()
+
     while True:
         spec = q.get()
         if spec is _sentinel:
