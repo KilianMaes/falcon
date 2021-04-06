@@ -30,17 +30,18 @@ batch_size = 2**16
 
 # DBSCAN clustering.
 #eps = 0.1 # CHANGED
-eps = 0.35
+eps = 0.05
 min_samples = 2
 
 # Input/output.
 overwrite = False
 export_representatives = False
-pxd = 'USI000000'
+pxd = 'CCLE_Prot01'
 io_buffer_read = 10000
-io_limit = 463460
-peak_dir = os.path.abspath('datasets')
-work_dir = os.path.abspath('work_dir_SSD/Prot_01')
+io_limit = None
+#peak_dir = os.path.abspath('/media/maesk/WD/MS/CCLE_Protein_01')
+peak_dir = os.path.abspath('/home/maesk/MasterThesis/falcon/datasets/erwinia')
+work_dir = os.path.abspath('/media/maesk/WD/falcon/CCLE_Protein_01')
 filenames = [os.path.join(peak_dir, filename)
              for filename in os.listdir(peak_dir)
-             if filename.endswith('.db')]
+             if filename.endswith('.mgf')]
