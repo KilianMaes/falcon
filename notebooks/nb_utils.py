@@ -13,9 +13,9 @@ sys.path.append('..')
 import config
 from cluster import cluster, spectrum
 
-msclustering_tolerance = 0.05
-hdvectors_min_mz, hdvectors_max_mz = 101, 1500
-hdvectors_fragment_mz_tolerance = 0.05
+#msclustering_tolerance = 0.05
+#hdvectors_min_mz, hdvectors_max_mz = 101, 1500
+#hdvectors_fragment_mz_tolerance = 0.05
 
 
 # The function to process the spectra (same as for falcon)
@@ -68,6 +68,15 @@ def read_spectra(charge, path, limit=None):
                     return
                 yield spec
 
+def read_spectra_from_bucket(charge, path, mz_split, limit=None):
+    cnt = 0
+
+    with open(os.path.join(path, f'{charge}_{mz_split}.pkl'), 'rb') as f_in:
+        for spec in pickle.load(f_in):
+            cnt = cnt + 1
+            if limit is not None and cnt > limit:
+                return
+            yield spec
 
 """
     Functions related to the precursor mz tolerance
@@ -227,14 +236,13 @@ def extract_nondiag_values(mat):
 """
     Distance functions
 """
-
-def hdvectors_distance(sps):
+def hdvectors_distance(sps, hdvectors_min_mz, hdvectors_max_mz, hdvectors_fragment_mz_tolerance):
     min_mz = hdvectors_min_mz
     max_mz = hdvectors_max_mz
     fragment_mz_tolerance = hdvectors_fragment_mz_tolerance
     vecs = []
     for sp in sps:
-        l = int((max_mz - min_mz) / fragment_mz_tolerance)
+        l = math.ceil((max_mz - min_mz) / fragment_mz_tolerance)
         vec = np.zeros(l)
         for mz, intensity in zip(sp.mz, sp.intensity):
             ind = int(np.floor((mz - min_mz) / fragment_mz_tolerance))
