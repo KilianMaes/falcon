@@ -1,5 +1,6 @@
 import os
 import time
+import random
 import numpy as np
 from sklearn import random_projection
 from sklearn import manifold
@@ -13,20 +14,47 @@ import math
 
 from tqdm.notebook import tqdm
 
+# If pairs is not none, compute all the pairwise similarities between different spectra.
+# Else, compute the similarities for the pairs of spectra in pairs
+def compute_pairwise_cosine(vectors, pairs = None, title = None):
+    if pairs is None:
+        n, dim = np.shape(vectors)
+        dist = np.zeros( (n*n - n,) )
+        curr = 0
 
-def compute_pairwise_cosine( vectors ):
-    n, dim = np.shape(vectors)
-    dist = np.zeros( (n*n - n,) )
-    curr = 0
+        pbar = tqdm(range(n))
+        pbar.set_description(title)
+        for i in pbar:
+            for j in range(n):
+                if j != i:
+                    # cosine() refers to the cosine distance, not the cosine similarity
+                    dist[curr] = cosine(vectors[i,:], vectors[j,:])
+                    curr = curr + 1
+    else:
+        n = len(pairs)
+        dist = np.zeros( (n,) )
 
-    for i in tqdm(range(n)):
-        for j in range(n):
-            if j != i:
-                # cosine() refers to the cosine distance, not the cosine similarity
-                dist[curr] = cosine(vectors[i,:], vectors[j,:])
-                curr = curr + 1
+        pbar = tqdm(range(n))
+        pbar.set_description(title)
+        for i_p in pbar:
+            i, j = pairs[i_p]
+            assert i != j
+            dist[i_p] = cosine(vectors[i,:], vectors[j,:])
 
     return dist
+
+
+def sp_to_vecHD(sps, min_mz, max_mz, fragment_mz_tolerance):
+    nsp = len(sps)
+
+    len_hd = math.ceil((max_mz - min_mz) / fragment_mz_tolerance)
+    vec_hd = np.zeros( (len(sps), len_hd) )  # The size is (# of vec, vector size)
+    for i in range(nsp):
+        sp = sps[i]
+        for mz, intensity in zip(sp.mz, sp.intensity):
+            j = math.floor((mz - min_mz) / fragment_mz_tolerance)
+            vec_hd[i, j] = vec_hd[i, j] + intensity
+    return vec_hd
 
 
 def reduction_falcon(vec_hd, n_components):
@@ -64,30 +92,21 @@ def reduction_tSNE(vec_hd, n_components):
     return vec_tSNE
 
 
-def sp_to_vecHD(sps, min_mz, max_mz, fragment_mz_tolerance):
-    nsp = len(sps)
-
-    len_hd = math.ceil((max_mz - min_mz) / fragment_mz_tolerance)
-    vec_hd = np.zeros( (len(sps), len_hd) )  # The size is (# of vec, vector size)
-    for i in tqdm(range(nsp)):
-        sp = sps[i]
-        for mz, intensity in zip(sp.mz, sp.intensity):
-            j = int(np.floor((mz - min_mz) / fragment_mz_tolerance))
-            vec_hd[i, j] = vec_hd[i, j] + intensity
-    return vec_hd
-
-
-def compare_reductions(vec_hd, n_components, funcs, methods, dirFig):
+def compare_reductions(vec_hd, n_components, funcs, methods, dirFig, pairs = None):
     nsp, vec_len = np.shape(vec_hd)
 
     fig, axs = plt.subplots(1, len(methods), figsize=(12, 4))
-    fig.suptitle('Exhaustive comparison for %d spectra' % (nsp,))
+    title = 'Exhaustive' if pairs is None else 'Non exhaustive'
+    title = title + ' comparison for %d spectra' % (nsp,)
+    fig.suptitle(title)
 
-    dist_hd = compute_pairwise_cosine(vec_hd)
+    dist_hd = compute_pairwise_cosine(vec_hd, pairs, 'HD distance')
     dists = []
-    for f in funcs:
+    for f, method in zip(funcs, methods):
+        start_time = time.time()
         vec = f(vec_hd, n_components)
-        dists.append(compute_pairwise_cosine(vec))
+        print('Time needed for %s : %.2f s' % (method, time.time() - start_time))
+        dists.append(compute_pairwise_cosine(vec, pairs=pairs, title=method))
 
     MSEs = []
     for i in range(len(methods)):
@@ -100,4 +119,15 @@ def compare_reductions(vec_hd, n_components, funcs, methods, dirFig):
     plt.tight_layout()
     plt.savefig(dirFig, dpi=300)
 
-    return mse
+    return MSEs
+
+
+def generate_pairs(n_pairs, nsp, seed = 42):
+    pairs = []
+    while len(pairs) != n_pairs:
+        i = random.randint(0, nsp-1)
+        j = random.randint(0, nsp-1)
+        if i != j:
+            pairs.append( (i,j) )
+
+    return pairs
