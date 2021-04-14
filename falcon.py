@@ -31,18 +31,18 @@ def main():
                         'results might get overwritten', config.work_dir)
     os.makedirs(config.work_dir, exist_ok=True)
     os.makedirs(os.path.join(config.work_dir, 'spectra'), exist_ok=True)
-    os.makedirs(os.path.join(config.work_dir, 'nn'), exist_ok=True)
+    os.makedirs(config.nn_dir, exist_ok=True)
 
     # Clean all intermediate results if "overwrite" is specified.
     if config.overwrite:
         for filename in os.listdir(os.path.join(config.work_dir, 'spectra')):
             os.remove(os.path.join(config.work_dir, 'spectra', filename))
-        for filename in os.listdir(os.path.join(config.work_dir, 'nn')):
-            os.remove(os.path.join(config.work_dir, 'nn', filename))
-        if os.path.isfile(os.path.join(config.work_dir, 'clusters.csv')):
-            os.remove(os.path.join(config.work_dir, 'clusters.csv'))
-        if os.path.isfile(os.path.join(config.work_dir, 'clusters.mgf')):
-            os.remove(os.path.join(config.work_dir, 'clusters.mgf'))
+        for filename in os.listdir(os.path.join(config.nn_dir)):
+            os.remove(os.path.join(config.nn_dir, filename))
+        if os.path.isfile(os.path.join(config.nn_dir, 'clusters.csv')):
+            os.remove(os.path.join(config.nn_dir, 'clusters.csv'))
+        if os.path.isfile(os.path.join(config.nn_dir, 'clusters.mgf')):
+            os.remove(os.path.join(config.nn_dir, 'clusters.mgf'))
 
     start_time = time.time()
 
@@ -83,9 +83,9 @@ def main():
         logger.info('Cluster %d spectra with precursor charge %d',
                     n_spectra, charge)
         dist_filename = os.path.join(
-            config.work_dir, 'nn', f'dist_{charge}.npz')
+            config.nn_dir, f'dist_{charge}.npz')
         metadata_filename = os.path.join(
-            config.work_dir, 'nn', f'metadata_{charge}.parquet')
+            config.nn_dir, f'metadata_{charge}.parquet')
         if (not os.path.isfile(dist_filename)
                 or not os.path.isfile(metadata_filename)):
             pairwise_dist_matrix, metadata = \
@@ -135,7 +135,7 @@ def main():
                 'clusters', n_spectra_clustered, n_clusters)
     clusters_all = (pd.concat(clusters_all, ignore_index=True)
                     .sort_values('identifier', key=natsort.natsort_keygen()))
-    clusters_all.to_csv(os.path.join(config.work_dir, 'clusters.csv'),
+    clusters_all.to_csv(os.path.join(config.nn_dir, 'clusters.csv'),
                         index=False)
     if config.export_representatives:
         representative_info = (
@@ -160,7 +160,7 @@ def main():
                 for fn, spectra in representative_info.groupby('filename')):
             representatives.extend(spectra)
         representatives.sort(key=lambda spec: spec.cluster)
-        ms_io.write_spectra(os.path.join(config.work_dir, 'clusters.mgf'),
+        ms_io.write_spectra(os.path.join(config.nn_dir, 'clusters.mgf'),
                             representatives)
 
     logging.shutdown()

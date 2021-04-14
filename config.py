@@ -30,18 +30,23 @@ batch_size = 2**16
 
 # DBSCAN clustering.
 #eps = 0.1 # CHANGED
-eps = 0.05
+eps = 0.1
 min_samples = 2
 
 # Input/output.
 overwrite = False
 export_representatives = False
-pxd = 'CCLE_Prot01'
+pxd = 'CCLE'
 io_buffer_read = 10000
 io_limit = None
 #peak_dir = os.path.abspath('/media/maesk/WD/MS/CCLE_Protein_01')
-peak_dir = os.path.abspath('/home/maesk/MasterThesis/falcon/datasets/erwinia')
+peak_dir = os.path.abspath('/media/maesk/WD/MS/CCLE_Protein_01')
 work_dir = os.path.abspath('/media/maesk/WD/falcon/CCLE_Protein_01')
+nn_dir = os.path.join(work_dir,
+                      'nn',
+                      f'eps_{eps}_minsample_{min_samples}',
+                      f'fragm_tol_{fragment_mz_tolerance}_hash_len_{hash_len}',
+                      f'prec_tol_{precursor_tol_mass}')
 filenames = [os.path.join(peak_dir, filename)
              for filename in os.listdir(peak_dir)
-             if filename.endswith('.mgf')]
+             if filename.endswith('.mzML')]
