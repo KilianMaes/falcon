@@ -1,0 +1,31 @@
+J'ai joint les fichiers correspondants aux clusters des matchs pour les PTMs "phosphorylation" et "acétylation".
+Les données d'identification sont celles que vous m'avez envoyées sur Slack.
+Bien sûr, je n'ai pris que les matchs pour lesquels la Pep Q-value est < 0.01 et pour lesquels isDecoy == False.
+
+Comme je l'ai détaillé ci-dessous, une bonne partie des PTMs détectées durant l'analyse des consensus sont connues sur UniProt. Je suppose qu'il serait intéressant d'accorder un intérêt particulier aux clusters pour lesquels les PTMs ne sont pas connues ? J'ai tenté de vérifier si les PTMs étaient renseignées sur phosphoDB (https://phosphodb.hecklab.com/), mais après avoir cliqué sur la protéine qui m'intéresse cela charge sans fin...
+
+Le fichier description_all.csv contient les IDs de tous les clusters pour lesquels on a eu un match pour une phosphorylation ou une acétylation. De plus, j'y ai indiqué si la PTM était renseignée sur UniProt ou non. Voici quelques commentaires concernant les différents batchs:
+
+
+5000_batch_1 (= taille comprise entre [2,5[)
+
+    -> Aucune identification ne passe la Q-value.
+
+
+5000_batch_2 (= taille comprise entre [5,20[)
+
+    3/4 phosphorylations sont connues sur UniProt. La dernière (cluster 250849) non (mais le gène est renseigné sur la ressource en ligne du Draft of the Human Proteome, d'autres spectres ont donc semble-t-il permis l'identification). Je pense donc qu'il serait utile de valider (ou non) la phosphorylation manuellement.
+
+    3/4 des acétylations concernent des histones, cela semble cohérent avec le fait que l'acétylation des histones sert à réguler la transcription de gènes. Pour les clusters 98158 et 201651, une PTM est mentionnée sur UniProt à la même position mais il ne me semble pas qu'il s'agisse d'acétylations, qu'en pensez-vous ? La dernière acétylation (cluster 224052) n'est pas mentionnée sur UniProt.
+
+
+5000_batch_3 (= taille supérieure ou égale à 20)
+
+    5/6 phosphorylations sont connues sur UniProt. Pour celle qui n'est pas connue (cluster 1071670), le gène est renseigné sur la ressource en ligne du Draft of the Human Proteome. Je suppose que c'est un bon candidat pour l'analyse manuelle.
+
+    2/3 acétylations sont connues sur UniProt. Pour celle qui n'est pas connue (cluster 1184081), le gène est renseigné sur la ressource en ligne du Draft of the Human Proteome. 
+
+
+1000_v2_consensus (= taille supérieure à 6, consensus parmi ceux ayant le plus de pics)
+
+    Je n'ai joint qu'un seul cluster (le 631425) de ce batch là (mon PC fait des siennes et il me faudrait un peu de temps pour générer les autres clusters). Pour ce batch, on a un nombre élevé de phosphorylations (6) et acétylations (6) détectées (la proportion est élevée par rapport aux batchs 2 et 3). De plus, contrairement aux batchs précédents, la presque totalité des PTMs ne sont pas connues sur UniProt. Cela m'inspire un peu moins confiance mais en fonction de vos observations sur les autres clusters, je vous ferai suivre (ou non) les clusters correspondant à ce batch.
