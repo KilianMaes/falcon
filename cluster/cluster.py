@@ -198,8 +198,11 @@ def _build_query_ann_index(
                     precursor_mzs_split.append(spec.precursor_mz)
         if len(spectra_split) == 0:
             continue
+<<<<<<< HEAD
         bucket_sizes.append(len(spectra_split))
         filenames.append(pkl_filename)
+=======
+>>>>>>> 220b666d2f358c95cb702600f44c8fcee106f4f0
         precursor_mzs.append(np.asarray(precursor_mzs_split))
         # Convert the spectra to vectors.
         vectors_split = vectorize(spectra_split)
@@ -250,6 +253,7 @@ def _build_query_ann_index(
             index, vectors_split, precursor_mzs[-1], batch_size, n_neighbors,
             n_neighbors_ann, precursor_tol_mass, precursor_tol_mode,
             distances, indices, indptr, indptr_i)
+<<<<<<< HEAD
         timeSearch.append(time.time()-time2)
         timeKmeans.append(time2-startTime)
         indptr_i += n_split
@@ -258,6 +262,9 @@ def _build_query_ann_index(
                   'size': bucket_sizes,
                   'time_kmeans': timeKmeans,
                   'time_ANNsearch': timeSearch}).to_csv(export_filename)
+=======
+        indptr_i += n_split
+>>>>>>> 220b666d2f358c95cb702600f44c8fcee106f4f0
     return pd.DataFrame({'identifier': identifiers, 'precursor_charge': charge,
                          'precursor_mz': np.hstack(precursor_mzs)})
 
