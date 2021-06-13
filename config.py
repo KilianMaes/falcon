@@ -30,11 +30,12 @@ n_probe = 32
 batch_size = 2**16
 
 # DBSCAN clustering.
-eps = 0.1
+#eps = 0.1 # CHANGED
+eps = 0.35
 min_samples = 2
 
 # Input/output.
-overwrite = False
+overwrite = True # CHANGED
 export_representatives = False
 pxd = 'PXD000561'
 io_buffer_read = 10000
@@ -48,4 +49,4 @@ nn_dir = os.path.join(work_dir,
                       f'prec_tol_{precursor_tol_mass}')
 filenames = [os.path.join(peak_dir, filename)
              for filename in os.listdir(peak_dir)
-             if filename.endswith('.mgf')]
+             if filename.endswith('.db')]

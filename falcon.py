@@ -48,6 +48,8 @@ def main():
 
     start_time = time.time()
 
+    start_time = time.time()
+
     # Read the spectra from the input files and partition them based on their
     # precursor m/z.
     if not any([filename.endswith('.pkl') for filename in os.listdir(
