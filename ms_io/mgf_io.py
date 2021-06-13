@@ -67,7 +67,7 @@ def _parse_spectrum(spectrum_dict: Dict) -> sus.MsmsSpectrum:
 
     mz_array = spectrum_dict['m/z array']
     intensity_array = spectrum_dict['intensity array']
-    retention_time = float(spectrum_dict['params'].get('rtinseconds'))
+    retention_time = float(spectrum_dict['params'].get('rtinseconds', 0))
 
     precursor_mz = float(spectrum_dict['params']['pepmass'][0])
     if 'charge' in spectrum_dict['params']:

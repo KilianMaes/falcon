@@ -3,6 +3,7 @@ import math
 import os
 import pickle
 from typing import Callable, Iterable, List, Tuple
+import time # TODO
 
 import faiss
 import fastcluster
@@ -174,6 +175,10 @@ def _build_query_ann_index(
         Metadata (identifier, precursor charge, precursor m/z) of the spectra
         for which indexes were built.
     """
+    bucket_sizes = []
+    timeKmeans = []
+    timeSearch = []
+    filenames = []
     identifiers, precursor_mzs = [], []
     indptr_i = 0
     # Find neighbors per specified precursor m/z interval.
@@ -193,6 +198,8 @@ def _build_query_ann_index(
                     precursor_mzs_split.append(spec.precursor_mz)
         if len(spectra_split) == 0:
             continue
+        bucket_sizes.append(len(spectra_split))
+        filenames.append(pkl_filename)
         precursor_mzs.append(np.asarray(precursor_mzs_split))
         # Convert the spectra to vectors.
         vectors_split = vectorize(spectra_split)
@@ -218,6 +225,7 @@ def _build_query_ann_index(
             if n_split > 10e8:
                 logger.warning('More than 1B vectors to be indexed, consider '
                                'decreasing the ANN size')
+        startTime = time.time()
         # Create an ANN index using the inner product (proxy for cosine
         # distance) for fast NN queries.
         if n_list <= 0:
@@ -229,6 +237,7 @@ def _build_query_ann_index(
         # Compute cluster centroids.
         # noinspection PyArgumentList
         index.train(vectors_split)
+        time2 = time.time()
         # Add the vectors to the index in batches.
         batch_size = min(n_split, batch_size)
         for batch_start in range(0, n_split, batch_size):
@@ -241,7 +250,14 @@ def _build_query_ann_index(
             index, vectors_split, precursor_mzs[-1], batch_size, n_neighbors,
             n_neighbors_ann, precursor_tol_mass, precursor_tol_mode,
             distances, indices, indptr, indptr_i)
+        timeSearch.append(time.time()-time2)
+        timeKmeans.append(time2-startTime)
         indptr_i += n_split
+    export_filename = f'/home/maesk/MasterThesis/falcon/notebooks/bruteForce/falconPerformances_{charge}.csv'
+    pd.DataFrame({'bucket': filenames,
+                  'size': bucket_sizes,
+                  'time_kmeans': timeKmeans,
+                  'time_ANNsearch': timeSearch}).to_csv(export_filename)
     return pd.DataFrame({'identifier': identifiers, 'precursor_charge': charge,
                          'precursor_mz': np.hstack(precursor_mzs)})
 

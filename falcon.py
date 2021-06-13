@@ -33,14 +33,16 @@ def main():
     os.makedirs(os.path.join(config.work_dir, 'spectra'), exist_ok=True)
     os.makedirs(config.nn_dir, exist_ok=True)
 
+    exportFile = f'clusters_eps_{config.eps}_minsample_{config.min_samples}.csv'
+
     # Clean all intermediate results if "overwrite" is specified.
     if config.overwrite:
         for filename in os.listdir(os.path.join(config.work_dir, 'spectra')):
             os.remove(os.path.join(config.work_dir, 'spectra', filename))
         for filename in os.listdir(os.path.join(config.nn_dir)):
             os.remove(os.path.join(config.nn_dir, filename))
-        if os.path.isfile(os.path.join(config.nn_dir, 'clusters.csv')):
-            os.remove(os.path.join(config.nn_dir, 'clusters.csv'))
+        if os.path.isfile(os.path.join(config.nn_dir, exportFile)):
+            os.remove(os.path.join(config.nn_dir, exportFile))
         if os.path.isfile(os.path.join(config.nn_dir, 'clusters.mgf')):
             os.remove(os.path.join(config.nn_dir, 'clusters.mgf'))
 
@@ -135,7 +137,7 @@ def main():
                 'clusters', n_spectra_clustered, n_clusters)
     clusters_all = (pd.concat(clusters_all, ignore_index=True)
                     .sort_values('identifier', key=natsort.natsort_keygen()))
-    clusters_all.to_csv(os.path.join(config.nn_dir, 'clusters.csv'),
+    clusters_all.to_csv(os.path.join(config.nn_dir, exportFile),
                         index=False)
     if config.export_representatives:
         representative_info = (

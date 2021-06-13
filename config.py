@@ -6,6 +6,7 @@ import numpy as np
 # Precursor charges and m/z's considered.
 mz_interval = 1
 charges, mzs = (2, 3, 4, 5), np.arange(50, 2501, mz_interval)
+#charges, mzs = (2,), np.arange(50, 2501, mz_interval)
 
 # Spectrum preprocessing.
 min_peaks = 5
@@ -29,24 +30,22 @@ n_probe = 32
 batch_size = 2**16
 
 # DBSCAN clustering.
-#eps = 0.1 # CHANGED
 eps = 0.1
 min_samples = 2
 
 # Input/output.
 overwrite = False
 export_representatives = False
-pxd = 'CCLE'
+pxd = 'PXD000561'
 io_buffer_read = 10000
 io_limit = None
 #peak_dir = os.path.abspath('/media/maesk/WD/MS/CCLE_Protein_01')
-peak_dir = os.path.abspath('/media/maesk/WD/MS/CCLE_Protein_01')
-work_dir = os.path.abspath('/media/maesk/WD/falcon/CCLE_Protein_01')
+peak_dir = os.path.abspath('/media/maesk/WD/MS/PXD000561/mgf')
+work_dir = os.path.abspath('/media/maesk/WD/falcon/PXD000561_computeTime')
 nn_dir = os.path.join(work_dir,
                       'nn',
-                      f'eps_{eps}_minsample_{min_samples}',
                       f'fragm_tol_{fragment_mz_tolerance}_hash_len_{hash_len}',
                       f'prec_tol_{precursor_tol_mass}')
 filenames = [os.path.join(peak_dir, filename)
              for filename in os.listdir(peak_dir)
-             if filename.endswith('.mzML')]
+             if filename.endswith('.mgf')]

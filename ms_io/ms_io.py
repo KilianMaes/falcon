@@ -72,7 +72,8 @@ def get_one_spectrum(filename: str, id: int) -> MsmsSpectrum:
     spec.is_processed = False
     return spec
 
-def get_one_spectrum_from_pkl(dir, precursor_charge, precursor_mz, identifier):
+# TODO rename in "get_spectra_from_pkl" as it can get several spectra
+def get_one_spectrum_from_pkl(dir, precursor_charge, precursor_mz, identifiers):
     """
     Works for all the input file formats because it reads the spectra directly in the .pkl files
     created during the clustering.
@@ -93,14 +94,20 @@ def get_one_spectrum_from_pkl(dir, precursor_charge, precursor_mz, identifier):
     MsmsSpectrum
         The requested spectrum.
     """
+    res = []
+
     mz_split = int(precursor_mz) # Assume we use 1 mz wide buckets
     with open(os.path.join(dir, f'{precursor_charge}_{mz_split}.pkl'), 'rb') as f_in:
         for spec in pickle.load(f_in):
-            if spec.identifier == identifier:
-                return MsmsSpectrum(
+            if spec.identifier in identifiers:
+                res.append(MsmsSpectrum(
                     spec.identifier, spec.precursor_mz, spec.precursor_charge,
-                    spec.mz, spec.intensity)
-    return None
+                    spec.mz, spec.intensity))
+                identifiers.remove(spec.identifier)
+                if len(identifiers) == 0:
+                    return res
+
+    raise Exception('Not all spectra were found: ', str(identifiers))
 
 def write_spectra(filename: str, spectra: Iterable[MsmsSpectrum]) -> None:
     """
