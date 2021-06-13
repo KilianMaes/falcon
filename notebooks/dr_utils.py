@@ -6,6 +6,8 @@ from sklearn import random_projection
 from sklearn import manifold
 import matplotlib.pyplot as plt
 
+from sklearn import preprocessing
+from sklearn import decomposition
 from sklearn import metrics
 from sklearn.utils import murmurhash3_32
 
@@ -40,7 +42,6 @@ def compute_pairwise_cosine(vectors, pairs = None, title = None):
             i, j = pairs[i_p]
             assert i != j
             dist[i_p] = cosine(vectors[i,:], vectors[j,:])
-
     return dist
 
 
@@ -91,6 +92,9 @@ def reduction_tSNE(vec_hd, n_components):
     vec_tSNE = manifold.TSNE(n_components = n_components, method = 'exact').fit_transform(vec_hd)
     return vec_tSNE
 
+def reduction_PCA(vec_hd, n_components):
+    pca = decomposition.PCA(n_components = n_components, )
+    return pca.fit_transform(vec_hd)
 
 def compare_reductions(vec_hd, n_components, funcs, methods, dirFig, pairs = None):
     nsp, vec_len = np.shape(vec_hd)
@@ -105,6 +109,7 @@ def compare_reductions(vec_hd, n_components, funcs, methods, dirFig, pairs = Non
     for f, method in zip(funcs, methods):
         start_time = time.time()
         vec = f(vec_hd, n_components)
+        vec = preprocessing.normalize(vec)
         print('Time needed for %s : %.2f s' % (method, time.time() - start_time))
         dists.append(compute_pairwise_cosine(vec, pairs=pairs, title=method))
 

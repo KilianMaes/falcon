@@ -1,0 +1,31 @@
+Stade of development,Type of tissue,Tissue/cells,spectrometer,prop_tot,prop_labelled
+Adult,Blood,Bcells,994466,3.98,36.30
+Adult,Blood,CD4Tcells,704190,2.82,48.08
+Adult,Blood,CD8Tcells,1064964,4.26,49.19
+Adult,Blood,Monocytes,661745,2.65,45.33
+Adult,Blood,NKcells,1181183,4.73,33.18
+Adult,Blood,Platelets,851194,3.41,38.07
+Adult,Solid tissue,Adrenalgland,644128,2.58,47.88
+Adult,Solid tissue,Colon,705131,2.82,41.76
+Adult,Solid tissue,Esophagus,681071,2.73,30.53
+Adult,Solid tissue,Frontalcortex,1140075,4.56,39.43
+Adult,Solid tissue,Gallbladder,774087,3.10,38.59
+Adult,Solid tissue,Heart,1429140,5.72,34.07
+Adult,Solid tissue,Kidney,703320,2.81,41.53
+Adult,Solid tissue,Liver,1091219,4.37,38.72
+Adult,Solid tissue,Lung,697904,2.79,38.79
+Adult,Solid tissue,Ovary,714576,2.86,55.46
+Adult,Solid tissue,Pancreas,513506,2.05,45.88
+Adult,Solid tissue,Prostate,819262,3.28,38.07
+Adult,Solid tissue,Rectum,685409,2.74,43.89
+Adult,Solid tissue,Retina,883514,3.54,47.55
+Adult,Solid tissue,Spinalcord,726996,2.91,41.14
+Adult,Solid tissue,Testis,690291,2.76,54.57
+Adult,Solid tissue,Urinarybladder,1180665,4.72,37.97
+Fetal,Solid tissue,Brain,577147,2.31,42.04
+Fetal,Solid tissue,Gut,1103761,4.42,33.32
+Fetal,Solid tissue,Heart,1110679,4.44,52.25
+Fetal,Solid tissue,Liver,987630,3.95,46.32
+Fetal,Solid tissue,Ovary,639061,2.56,55.31
+Fetal,Solid tissue,Placenta,488267,1.95,36.31
+Fetal,Solid tissue,Testis,547899,2.19,45.38
