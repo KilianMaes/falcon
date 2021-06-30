@@ -166,11 +166,7 @@ def main():
                 for fn, spectra in representative_info.groupby('filename')):
             representatives.extend(spectra)
         representatives.sort(key=lambda spec: spec.cluster)
-<<<<<<< HEAD
         ms_io.write_spectra(os.path.join(config.nn_dir, 'clusters.mgf'),
-=======
-        ms_io.write_spectra(os.path.join(config.work_dir, 'clusters.mgf'),
->>>>>>> 220b666d2f358c95cb702600f44c8fcee106f4f0
                             representatives)
 
     logging.shutdown()
@@ -237,11 +233,7 @@ def _read_spectra(filename: str, q: queue):
     cnt = 0
 
     for spec in ms_io.get_spectra(filename):
-<<<<<<< HEAD
         if config.io_limit and cnt >= config.io_limit:
-=======
-        if cnt >= config.io_limit:
->>>>>>> 220b666d2f358c95cb702600f44c8fcee106f4f0
             break
 
         if spec.precursor_charge in config.charges:
@@ -265,15 +257,11 @@ def _store_spectra(filehandles, q, _sentinel):
     -------
 
     """
-<<<<<<< HEAD
     if config.io_limit:
         pbar = tqdm.tqdm(total=config.io_limit)
     else:
         pbar = tqdm.tqdm()
 
-=======
-    pbar = tqdm.tqdm(total=config.io_limit)
->>>>>>> 220b666d2f358c95cb702600f44c8fcee106f4f0
     while True:
         spec = q.get()
         if spec is _sentinel:

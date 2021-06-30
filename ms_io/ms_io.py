@@ -72,8 +72,6 @@ def get_one_spectrum(filename: str, id: int) -> MsmsSpectrum:
     spec.is_processed = False
     return spec
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 # TODO rename in "get_spectra_from_pkl" as it can get several spectra
 def get_one_spectrum_from_pkl(dir, precursor_charge, precursor_mz, identifiers):
     """
@@ -111,10 +109,7 @@ def get_one_spectrum_from_pkl(dir, precursor_charge, precursor_mz, identifiers):
 
     raise Exception('Not all spectra were found: ', str(identifiers))
 
-=======
->>>>>>> 220b666d2f358c95cb702600f44c8fcee106f4f0
-=======
->>>>>>> 220b666d2f358c95cb702600f44c8fcee106f4f0
+
 def write_spectra(filename: str, spectra: Iterable[MsmsSpectrum]) -> None:
     """
     Write the given spectra to a peak file.
